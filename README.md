@@ -542,6 +542,6 @@ python train_net.py \
 python train_net.py   --config-file /home/ubuntu/Mask2Former/configs/ade20k/semantic-segmentation/maskformer2_UNI_cell.yaml   --num-gpus 1   --eval-only   DATASETS.TEST "('cells_test',)"   MODEL.WEIGHTS ./output/maskformer2_uni_cell_run_5000_03_03_5_bestone_witharg_data/model_final.pth   OUTPUT_DIR ./output/maskformer2_uni_cell_run_5000_03_03_5_bestone_witharg_data/eval_best
 ```
 
-### Evaluation (Instance — Val Set)
+### Evaluation (Instance — Test Set)
 ```bash
 python train_net.py --config-file /home/ubuntu/Mask2Former/configs/ade20k/instance-segmentation/maskformer2_UNI_cell_instance.yaml --num-gpus 1 --eval-only DATASETS.TEST "('cells_instance_test',)" MODEL.WEIGHTS ./output/maskformer2_uni_cell_run_5000_03_04_bestone_withargdata_instance/model_final.pth OUTPUT_DIR ./output/maskformer2_uni_cell_run_5000_03_04_bestone_withargdata_instance/eval_best```

@@ -1,0 +1,120 @@
+MODEL:
+  META_ARCHITECTURE: "MaskFormer"
+
+  # ---- UNI backbone (your custom) ----
+  BACKBONE:
+    NAME: "build_uni_vit_adapter_backbone"
+  UNI:
+    WEIGHTS: "/home/ubuntu/assets/ckpts/uni2-h/uni2h_state_dict_cpu.pt"
+    PATCH_SIZE: 14
+    EMBED_DIM: 1536
+
+  # ---- Semantic head ----
+  SEM_SEG_HEAD:
+    NAME: "MaskFormerHead"
+    IGNORE_VALUE: 255
+    NUM_CLASSES: 1
+    LOSS_WEIGHT: 1.0
+    CONVS_DIM: 256
+    MASK_DIM: 256
+    NORM: "GN"
+
+    # Pixel decoder (requires MSDeformAttn CUDA op compiled)
+    PIXEL_DECODER_NAME: "MSDeformAttnPixelDecoder"
+    IN_FEATURES: ["res2", "res3", "res4", "res5"]
+    DEFORMABLE_TRANSFORMER_ENCODER_IN_FEATURES: ["res3", "res4", "res5"]
+    COMMON_STRIDE: 4
+    TRANSFORMER_ENC_LAYERS: 6
+
+  MASK_FORMER:
+    TRANSFORMER_DECODER_NAME: "MultiScaleMaskedTransformerDecoder"
+    TRANSFORMER_IN_FEATURE: "multi_scale_pixel_decoder"
+    DEEP_SUPERVISION: True
+
+    NO_OBJECT_WEIGHT: 0.1
+    CLASS_WEIGHT: 2.0
+    MASK_WEIGHT: 5.0
+    DICE_WEIGHT: 5.0
+
+    HIDDEN_DIM: 256
+    NUM_OBJECT_QUERIES: 100
+    NHEADS: 8
+    DROPOUT: 0.0
+    DIM_FEEDFORWARD: 2048
+
+    ENC_LAYERS: 0
+    PRE_NORM: False
+    ENFORCE_INPUT_PROJ: False
+
+    # keep 32 because pipeline expects /4 /8 /16 /32 feature maps
+    SIZE_DIVISIBILITY: 32
+    
+    DEC_LAYERS: 4
+    TRAIN_NUM_POINTS: 2048
+    OVERSAMPLE_RATIO: 3.0
+    IMPORTANCE_SAMPLE_RATIO: 0.75
+
+    TEST:
+      SEMANTIC_ON: False         
+      INSTANCE_ON: True  
+      PANOPTIC_ON: False
+      OVERLAP_THRESHOLD: 0.8
+      OBJECT_MASK_THRESHOLD: 0.8
+
+
+# --------------------------
+# DATA
+# --------------------------
+DATASETS:
+  TRAIN: ("cells_instance_train",)   # was cells_train
+  
+  TEST: ("cells_instance_val",)      # was cells_val
+
+
+
+
+
+DATALOADER:
+  NUM_WORKERS: 4
+
+INPUT:
+  DATASET_MAPPER_NAME: "cells_instance"
+  CELLS_AUG: False
+  FORMAT: "BGR"
+
+  # Much smaller to fit UNI2-h + Mask2Former
+  MIN_SIZE_TRAIN: (196, 224, 280)
+  MAX_SIZE_TRAIN: 384
+  MIN_SIZE_TEST: 280
+  MAX_SIZE_TEST: 384
+
+# --------------------------
+# SOLVER
+# --------------------------
+SOLVER:
+  IMS_PER_BATCH: 2
+  BASE_LR: 0.0001
+  WEIGHT_DECAY: 0.05
+  OPTIMIZER: "ADAMW"
+
+  WARMUP_ITERS: 200
+  WARMUP_FACTOR: 0.01
+  LR_SCHEDULER_NAME: "WarmupPolyLR"
+
+  MAX_ITER: 5000
+  CHECKPOINT_PERIOD: 500
+
+  CLIP_GRADIENTS:
+    ENABLED: True
+    CLIP_TYPE: "full_model"
+    CLIP_VALUE: 1.0
+
+# --------------------------
+# TEST / OUTPUT
+# --------------------------
+TEST:
+  AUG:
+    ENABLED: False
+  EVAL_PERIOD: 50
+
+OUTPUT_DIR: "./output/maskformer2_uni_cell"

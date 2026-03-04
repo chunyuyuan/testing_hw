@@ -178,6 +178,9 @@ In addition to the periodic evaluation every 50 iterations, I implemented a cust
 
 
 
+
+#### With train_aug(3156) to train model
+
 | Metric | Value |
 |--------|-------|
 |  mIoU: | 91.33% | 

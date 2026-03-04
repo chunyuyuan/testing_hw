@@ -12,7 +12,7 @@ I adopt **UNI2-h**, a ViT-Giant pretrained on over 100 million pathology image t
 
 ### Pyramid Adapter: UNI → Mask2Former Feature Maps
 
-UNI2-h outputs a single-scale feature map at stride 14 (patch size). Mask2Former requires multi-scale features at strides 4, 8, 16, and 32. I designed a **UNIPyramidForMask2Former** adapter that:
+UNI2-h outputs a single-scale feature map at stride 14 (patch size), whereas Mask2Former requires multi-scale features at strides 4, 8, 16, and 32. To bridge this gap, I designed the UNIPyramidForMask2Former adapter. Prioritizing the architectural suggestions from the original paper, the adapter works as follows:
 
 1. Takes the stride-14 UNI feature map.
 2. Interpolates it (bilinear) to four target resolutions: H/4, H/8, H/16, H/32.

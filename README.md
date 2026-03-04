@@ -61,7 +61,8 @@ Key differences between the two task configurations:
 | PANOPTIC_ON | False | False |
 | DATASET_MAPPER_NAME | cells_semantic | cells_instance |
 | DATASETS.TRAIN | cells_train | cells_instance_train |
-| DATASETS.TEST | cells_val | cells_instance_val |
+| DATASETS.VAL | cells_val | cells_instance_val |
+| DATASETS.TEST | cells_test | cells_instance_test |
 
 The semantic task uses 25 queries for 2-class pixel labeling, while the instance task requires 100 queries to handle the many individual cells per image.
 

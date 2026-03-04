@@ -101,9 +101,10 @@ For instance segmentation ground truth, I used **Cellpose** (cyto model, v2.2.3,
 
 | Split | Images | Usage |
 |-------|--------|-------|
-| Train | ~1,000 | Training |
-| Val | ~200 | Validation / model selection |
-| Test | ~159 | Final evaluation |
+| Train | 1,052 | Training |
+| Train_aug | 13156 | Training with augmentation |
+| Val | 117 | Validation / model selection |
+| Test | 159 | Final evaluation |
 
 Image resolutions: primarily 1600×1200 and 1944×1383. All training images were resized to a uniform scale during preprocessing.
 

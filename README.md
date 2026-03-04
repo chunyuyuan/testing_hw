@@ -176,10 +176,15 @@ In addition to the periodic evaluation every 50 iterations, I implemented a cust
 
 ### Semantic Segmentation (Test Set)
 
+#### With train dataset (1052) to train model
+
+| Metric | Value |
+|--------|-------|
+|  mIoU: | 90.99% | 
+|  Dice: | 91.24% |
 
 
-
-#### With train_aug(3156) to train model
+#### With train_aug dataset (3156) to train model
 
 | Metric | Value |
 |--------|-------|

@@ -232,7 +232,7 @@ In addition to the periodic evaluation every 50 iterations, I implemented a cust
 
 *(Insert figure: original image, GT mask, predicted mask side by side), code can be refer to jupyter notebook*
 
-**Interpretation**: The semantic model accurately segments the majority of cells with clean boundaries. The predicted binary mask closely matches the ground truth, achieving 91.33 mIoU. Cell interiors are well-captured with minimal false positives in the background region.
+**Interpretation**: The semantic model successfully detects and segments the majority of cells. The predicted binary mask closely matches the ground truth overall. However, the cell boundaries are not sharply defined — edges appear blurred and some adjacent cells merge together. I attribute this primarily to the short training duration (5,000 iterations) and the aggressive downscaling of input images from 1600×1200 to a maximum of 384px, which causes fine boundary details to be lost during both training and inference.
 
 ### Visualization 2: Instance Segmentation — Prediction vs Ground Truth
 
@@ -250,7 +250,7 @@ In addition to the periodic evaluation every 50 iterations, I implemented a cust
 
 *(Insert figure: original image, instance ID map, boundary overlay, colored instances)*
 
-**Interpretation**: The model identifies individual cells as separate instances, each receiving a unique color/ID. The boundary overlay confirms that detected cells align with visible cell structures in the original image.
+**Interpretation**: The instance segmentation model is able to detect cells but with limited accuracy at this stage. The predicted instances capture the general location of cells, but boundary precision remains low. I believe the main reasons are threefold. First, the instance ground truth labels were automatically generated using Cellpose rather than manually annotated, introducing noise from over-segmentation and under-segmentation errors that the model inherits during training. Second, the training duration of only 5,000 iterations is insufficient for instance segmentation, which requires significantly more iterations to converge compared to semantic segmentation due to the complexity of per-instance Hungarian matching and mask prediction. Third, the aggressive input downscaling from 1600×1200 to a maximum of 384px causes small cells to lose shape detail, making it harder for the model to learn precise per-cell boundaries.
 
 
 
@@ -262,36 +262,25 @@ In addition to the periodic evaluation every 50 iterations, I implemented a cust
 
 ### Challenges Encountered
 
-1. **CUDA/CUBLAS Errors**: Encountered `CUBLAS_STATUS_INTERNAL_ERROR` during training with augmented (3,000 image) dataset. Root causes identified:
-   - Corrupted mask values (non-binary values like 29, 105, 178 from compression artifacts).
-   - Mixed image resolutions (1600×1200 and 1944×1383) causing variable tensor sizes in the Hungarian matcher's einsum operation.
-   - Solution: Validated and cleaned all masks to binary (0/1), resized to uniform dimensions.
+1. **Instance GT Quality**: The BCCD dataset only provides binary masks. I used Cellpose to generate instance labels, introducing dependency on Cellpose's segmentation quality. Some cells may be over- or under-segmented, creating noisy ground truth that limits instance segmentation performance.
 
-2. **Package Compatibility**: Python 3.8 environment with older PyTorch caused multiple issues:
-   - `np.bool` removed in NumPy 1.24+ — fixed with a compatibility shim (`np.bool = bool`) at the top of `train_net.py`.
-   - Cellpose API changes between v2 (`models.Cellpose`) and v3+ (`models.CellposeModel`) — pinned to `cellpose==2.2.3`.
+2. **GPU Memory Constraints**: I trained on a rented NVIDIA A10 (24GB VRAM) from Lambda Cloud. UNI2-h (ViT-Giant, embed_dim=1536, 24 layers) consumes ~18.5GB VRAM (`max_mem: 18505M`). This limited batch size to 2 (`IMS_PER_BATCH: 2`) and input resolution to 384px (`MAX_SIZE_TRAIN: 384`), which constrains mask boundary precision for instance segmentation.
 
-3. **Instance GT Quality**: The BCCD dataset only provides binary masks. I used Cellpose to generate instance labels, introducing dependency on Cellpose's segmentation quality. Some cells may be over- or under-segmented, creating noisy ground truth that limits instance segmentation performance.
-
-4. **GPU Memory Constraints**: UNI2-h (ViT-Giant, embed_dim=1536, 24 layers) consumes ~18.5GB VRAM (`max_mem: 18505M`). This limited batch size to 2 (`IMS_PER_BATCH: 2`) and input resolution to 384px (`MAX_SIZE_TRAIN: 384`), which constrains mask boundary precision for instance segmentation.
-
-5. **Instance Segmentation Convergence**: Instance segmentation converges much slower than semantic. At 5,000 iterations (`MAX_ITER: 5000`), AP remained below 3.0 (on 0–100 scale), while semantic mIoU reached 91+ at similar iteration counts. The per-instance Hungarian matching and loss computation is fundamentally harder than pixel-level classification.
+3. **Instance Segmentation Convergence**: Instance segmentation converges much slower than semantic. At 5,000 iterations (`MAX_ITER: 5000`), AP remained below 3.0, while semantic mIoU reached 91+ at similar iteration counts. The per-instance Hungarian matching and loss computation is fundamentally harder than pixel-level classification.
 
 ### Potential Improvements
 
-1. **Higher Input Resolution**: Increasing `MAX_SIZE_TRAIN` from 384 to 512 would improve boundary precision (AP75). This could be achieved through mixed-precision training or reducing `TRAIN_NUM_POINTS` from 2048 to 1024.
+1. **Higher Input Resolution**: Increasing `MAX_SIZE_TRAIN` from 384 to 512 or larger would improve boundary precision (AP75). This could be achieved through mixed-precision training or reducing `TRAIN_NUM_POINTS` from 2048 to 1024.
 
 2. **More Training Iterations**: Instance segmentation would benefit from increasing `MAX_ITER` to 20,000–50,000. The current 5,000 iterations are insufficient for the model to learn precise per-instance mask prediction.
 
 3. **Increase NUM_OBJECT_QUERIES**: If images contain more than 100 cells, the current `NUM_OBJECT_QUERIES: 100` limits detection capacity. Should be set to at least the maximum cell count per image.
 
-4. **Lower Inference Thresholds**: Current `OBJECT_MASK_THRESHOLD: 0.8` may filter out valid but low-confidence predictions. Lowering to 0.3–0.5 could improve recall and AP.
+4. **Better Instance GT**: Replace Cellpose with manual annotations or tune Cellpose parameters (diameter, flow threshold) per image type for more accurate instance labels.
+   
+5. **Better GPU server**: The NVIDIA A10 (24GB VRAM) was sufficient but limiting. With a higher-end GPU such as an A100 (80GB VRAM), training could support larger batch sizes, higher input resolution (512px or above), and more decoder layers. All of which would improve mask boundary precision. Faster training throughput would also allow running more iterations and hyperparameter experiments within the same time budget.
 
-5. **Better Instance GT**: Replace Cellpose with manual annotations or tune Cellpose parameters (diameter, flow threshold) per image type for more accurate instance labels.
 
-6. **Expanded Augmentation**: Set `CELLS_AUG: True` to enable flips, and add rotation (90°/180°/270°), color jitter (brightness ±20%, contrast ±20%), which are standard in pathology image analysis.
-
-7. **Backbone Fine-tuning Strategy**: Apply a backbone learning rate multiplier (e.g., 0.1×) to fine-tune UNI2-h more conservatively while training the Mask2Former head at full learning rate.
 
 ---
 
@@ -381,18 +370,24 @@ TEST:
   EVAL_PERIOD: 50
 OUTPUT_DIR: "./output/maskformer2_uni_cell"
 ```
+### Instance Segmentation (`maskformer2_UNI_cell_instance.yaml`)
+
 
 ### Instance Segmentation (`maskformer2_UNI_cell_instance.yaml`)
 
 ```yaml
 MODEL:
   META_ARCHITECTURE: "MaskFormer"
+
+  # ---- UNI backbone (your custom) ----
   BACKBONE:
     NAME: "build_uni_vit_adapter_backbone"
   UNI:
     WEIGHTS: "/home/ubuntu/assets/ckpts/uni2-h/uni2h_state_dict_cpu.pt"
     PATCH_SIZE: 14
     EMBED_DIM: 1536
+
+  # ---- Semantic head ----
   SEM_SEG_HEAD:
     NAME: "MaskFormerHead"
     IGNORE_VALUE: 255
@@ -401,69 +396,105 @@ MODEL:
     CONVS_DIM: 256
     MASK_DIM: 256
     NORM: "GN"
+
+    # Pixel decoder (requires MSDeformAttn CUDA op compiled)
     PIXEL_DECODER_NAME: "MSDeformAttnPixelDecoder"
     IN_FEATURES: ["res2", "res3", "res4", "res5"]
     DEFORMABLE_TRANSFORMER_ENCODER_IN_FEATURES: ["res3", "res4", "res5"]
     COMMON_STRIDE: 4
     TRANSFORMER_ENC_LAYERS: 6
+
   MASK_FORMER:
     TRANSFORMER_DECODER_NAME: "MultiScaleMaskedTransformerDecoder"
     TRANSFORMER_IN_FEATURE: "multi_scale_pixel_decoder"
     DEEP_SUPERVISION: True
+
     NO_OBJECT_WEIGHT: 0.1
     CLASS_WEIGHT: 2.0
     MASK_WEIGHT: 5.0
     DICE_WEIGHT: 5.0
+
     HIDDEN_DIM: 256
     NUM_OBJECT_QUERIES: 100
     NHEADS: 8
     DROPOUT: 0.0
     DIM_FEEDFORWARD: 2048
+
     ENC_LAYERS: 0
     PRE_NORM: False
     ENFORCE_INPUT_PROJ: False
+
+    # keep 32 because pipeline expects /4 /8 /16 /32 feature maps
     SIZE_DIVISIBILITY: 32
+    
     DEC_LAYERS: 4
     TRAIN_NUM_POINTS: 2048
     OVERSAMPLE_RATIO: 3.0
     IMPORTANCE_SAMPLE_RATIO: 0.75
+
     TEST:
-      SEMANTIC_ON: False
-      INSTANCE_ON: True
+      SEMANTIC_ON: False         
+      INSTANCE_ON: True  
       PANOPTIC_ON: False
       OVERLAP_THRESHOLD: 0.8
       OBJECT_MASK_THRESHOLD: 0.8
+
+
+# --------------------------
+# DATA
+# --------------------------
 DATASETS:
-  TRAIN: ("cells_instance_train",)
-  TEST: ("cells_instance_val",)
+  TRAIN: ("cells_instance_train",)   # was cells_train
+  
+  TEST: ("cells_instance_val",)      # was cells_val
+
+
+
+
+
 DATALOADER:
   NUM_WORKERS: 4
+
 INPUT:
   DATASET_MAPPER_NAME: "cells_instance"
   CELLS_AUG: False
   FORMAT: "BGR"
+
+  # Much smaller to fit UNI2-h + Mask2Former
   MIN_SIZE_TRAIN: (196, 224, 280)
   MAX_SIZE_TRAIN: 384
   MIN_SIZE_TEST: 280
   MAX_SIZE_TEST: 384
+
+# --------------------------
+# SOLVER
+# --------------------------
 SOLVER:
   IMS_PER_BATCH: 2
   BASE_LR: 0.0001
   WEIGHT_DECAY: 0.05
   OPTIMIZER: "ADAMW"
+
   WARMUP_ITERS: 200
   WARMUP_FACTOR: 0.01
   LR_SCHEDULER_NAME: "WarmupPolyLR"
+
   MAX_ITER: 5000
   CHECKPOINT_PERIOD: 500
+
   CLIP_GRADIENTS:
     ENABLED: True
     CLIP_TYPE: "full_model"
     CLIP_VALUE: 1.0
+
+# --------------------------
+# TEST / OUTPUT
+# --------------------------
 TEST:
   AUG:
     ENABLED: False
   EVAL_PERIOD: 50
+
 OUTPUT_DIR: "./output/maskformer2_uni_cell"
 ```
 

@@ -174,7 +174,7 @@ In addition to the periodic evaluation every 50 iterations, I implemented a cust
 
 ## 3. Quantitative Results
 
-### Semantic Segmentation (Test Set)
+### Semantic Segmentation (Test Set), 5000 iteration
 
 #### With train dataset (1052) to train model
 
@@ -193,16 +193,24 @@ In addition to the periodic evaluation every 50 iterations, I implemented a cust
 
 
 
-### Instance Segmentation (Validation Set)
+### Instance Segmentation (Validation Set), 5000 iteration
+
+#### With train dataset (1052) to train model
 
 | Metric | Value |
 |--------|-------|
-| AP @[IoU=0.50:0.95] | 0.829 |
-| AP @[IoU=0.50] | 2.234 |
-| AP @[IoU=0.75] | 0.990 |
-| APm (medium area) | 0.961 |
+| AP @[IoU=0.50:0.95] | 4.0873% |
+| AP @[IoU=0.50] | 10.6957% |
+| AP @[IoU=0.75] | 2.7206% |
 
-*Note: AP values are on a 0–100 scale. Instance segmentation requires significantly more training iterations to converge compared to semantic segmentation. With extended training (20,000+ iterations), these values are expected to improve substantially.*
+#### With train dataset (3156) to train model
+
+| Metric | Value |
+|--------|-------|
+| AP @[IoU=0.50:0.95] | 6.3945% |
+| AP @[IoU=0.50] | 14.9720% |
+| AP @[IoU=0.75] | 4.9054% |
+
 
 ---
 
@@ -210,7 +218,9 @@ In addition to the periodic evaluation every 50 iterations, I implemented a cust
 
 ### Visualization 1: Semantic Segmentation — Prediction vs Ground Truth
 
-*(Insert figure: original image, GT mask, predicted mask side by side)*
+![Semantic GT vs Prediction](semantic_gt_vs_pred_example1.png)
+
+*(Insert figure: original image, GT mask, predicted mask side by side), code can be refer to jupyter notebook*
 
 **Interpretation**: The semantic model accurately segments the majority of cells with clean boundaries. The predicted binary mask closely matches the ground truth, achieving 91.33 mIoU. Cell interiors are well-captured with minimal false positives in the background region.
 

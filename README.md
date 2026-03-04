@@ -234,29 +234,27 @@ In addition to the periodic evaluation every 50 iterations, I implemented a cust
 
 **Interpretation**: The semantic model accurately segments the majority of cells with clean boundaries. The predicted binary mask closely matches the ground truth, achieving 91.33 mIoU. Cell interiors are well-captured with minimal false positives in the background region.
 
-### Visualization 2: Instance Segmentation — Colored Instance Map
+### Visualization 2: Instance Segmentation — Prediction vs Ground Truth
+
+#### Example 1
+
+![Semantic GT vs Prediction](gt_vs_pred_instance_example1.png)
+
+#### Example 2
+
+![Semantic GT vs Prediction](gt_vs_pred_instance_example2.png)
+
+#### Example 3
+
+![Semantic GT vs Prediction](gt_vs_pred_instance_example3.png)
 
 *(Insert figure: original image, instance ID map, boundary overlay, colored instances)*
 
 **Interpretation**: The model identifies individual cells as separate instances, each receiving a unique color/ID. The boundary overlay confirms that detected cells align with visible cell structures in the original image.
 
-### Visualization 3: GT (Cellpose) vs Predicted Instance Comparison
 
-*(Insert figure: original, Cellpose GT colored, predicted colored side by side)*
 
-**Interpretation**: Comparing Cellpose-generated ground truth with model predictions reveals that the model captures most cells but may differ in boundary precision. Some discrepancies arise from Cellpose's own imperfections in the GT labels, which propagate as label noise during training.
 
-### Visualization 4: Failure Case — Overlapping/Dense Cells
-
-*(Insert figure showing dense cell region with merged predictions)*
-
-**Interpretation**: In dense cell regions, the model struggles to separate tightly packed cells. The semantic model merges overlapping cells into a single connected region, while the instance model may assign a single ID to multiple touching cells. AP50 >> AP75 confirms that cell localization is correct but boundary precision is insufficient at higher IoU thresholds.
-
-### Visualization 5: Boundary Precision Analysis (AP50 vs AP75 Gap)
-
-*(Insert figure comparing predictions at different confidence thresholds)*
-
-**Interpretation**: The large gap between AP50 (2.234) and AP75 (0.990) indicates the model finds cells correctly but predicted mask boundaries are not pixel-precise. This is partially attributable to the small input resolution (MAX_SIZE_TRAIN: 384) — cells are downscaled significantly from 1600×1200 originals, losing fine boundary detail during both training and inference.
 
 ---
 

@@ -373,8 +373,6 @@ OUTPUT_DIR: "./output/maskformer2_uni_cell"
 ### Instance Segmentation (`maskformer2_UNI_cell_instance.yaml`)
 
 
-### Instance Segmentation (`maskformer2_UNI_cell_instance.yaml`)
-
 ```yaml
 MODEL:
   META_ARCHITECTURE: "MaskFormer"
@@ -521,20 +519,29 @@ Mask2Former/
 
 ### Semantic Segmentation Training
 ```bash
-python train_net.py --config-file configs/ade20k/semantic-segmentation/maskformer2_UNI_cell.yaml --num-gpus 1
+python train_net.py \
+  --config-file /home/ubuntu/Mask2Former/configs/ade20k/semantic-segmentation/maskformer2_UNI_cell.yaml \
+  --num-gpus 1 \
+  OUTPUT_DIR "./output/maskformer2_uni_cell_run_5000_03_03_4_bestone_witharg" \
+  SOLVER.MAX_ITER 5000 \
+  SOLVER.CHECKPOINT_PERIOD 500 \
+  TEST.EVAL_PERIOD 0 \
+  2>&1 | tee -a "./output/maskformer2_uni_cell_run_5000_03_03_4_bestone_witharg/train.log"
 ```
 
 ### Instance Segmentation Training
 ```bash
-python train_net.py --config-file configs/ade20k/instance-segmentation/maskformer2_UNI_cell_instance.yaml --num-gpus 1
+python train_net.py \
+  --config-file configs/ade20k/instance-segmentation/maskformer2_UNI_cell_instance.yaml \
+  --num-gpus 1 \
+  OUTPUT_DIR ./output/maskformer2_uni_cell_run_5000_03_04_bestone_withargdata_instance
 ```
 
 ### Evaluation (Semantic — Test Set)
 ```bash
-python train_net.py --config-file configs/ade20k/semantic-segmentation/maskformer2_UNI_cell.yaml --num-gpus 1 --eval-only DATASETS.TEST "('cells_test',)" MODEL.WEIGHTS ./output/maskformer2_uni_cell/model_best.pth
+python train_net.py   --config-file /home/ubuntu/Mask2Former/configs/ade20k/semantic-segmentation/maskformer2_UNI_cell.yaml   --num-gpus 1   --eval-only   DATASETS.TEST "('cells_test',)"   MODEL.WEIGHTS ./output/maskformer2_uni_cell_run_5000_03_03_5_bestone_witharg_data/model_final.pth   OUTPUT_DIR ./output/maskformer2_uni_cell_run_5000_03_03_5_bestone_witharg_data/eval_best
 ```
 
 ### Evaluation (Instance — Val Set)
 ```bash
-python train_net.py --config-file configs/ade20k/instance-segmentation/maskformer2_UNI_cell_instance.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS ./output/maskformer2_uni_cell/model_best.pth
-```
+python train_net.py --config-file /home/ubuntu/Mask2Former/configs/ade20k/instance-segmentation/maskformer2_UNI_cell_instance.yaml --num-gpus 1 --eval-only DATASETS.TEST "('cells_instance_test',)" MODEL.WEIGHTS ./output/maskformer2_uni_cell_run_5000_03_04_bestone_withargdata_instance/model_final.pth OUTPUT_DIR ./output/maskformer2_uni_cell_run_5000_03_04_bestone_withargdata_instance/eval_best```

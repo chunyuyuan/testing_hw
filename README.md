@@ -6,7 +6,7 @@
 
 I adopt **UNI2-h**, a ViT-Giant pretrained on over 100 million pathology image tiles, as the feature extraction backbone. UNI2-h was selected because:
 
-- Based on assigment's requirement. paper cited from "https://www.nature.com/articles/s41591-024-02857-3?utm_source=chatgpt.com"
+- Based on assigment's requirement. paper cited from "[https://www.nature.com/articles/s41591-024-02857-3?utm_source=chatgpt.com](https://www.nature.com/articles/s41591-024-02857-3)"
 - Its large embedding dimension (1536) with patch size 14 captures rich morphological features critical for distinguishing overlapping and heterogeneous cell types in blood cell images.
 - The pretrained weights (`uni2h_state_dict_cpu.pt`) encode tissue structure priors, reducing the need for extensive training data.
 

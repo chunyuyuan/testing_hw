@@ -102,7 +102,7 @@ For instance segmentation ground truth, I used **Cellpose** (cyto model, v2.2.3,
 | Split | Images | Usage |
 |-------|--------|-------|
 | Train | 1,052 | Training |
-| Train_aug | 13156 | Training with augmentation |
+| Train_aug | 3,156 | Training with augmentation |
 | Val | 117 | Validation / model selection |
 | Test | 159 | Final evaluation |
 
@@ -176,13 +176,14 @@ In addition to the periodic evaluation every 50 iterations, I implemented a cust
 
 ### Semantic Segmentation (Test Set)
 
+
+
 | Metric | Value |
 |--------|-------|
-| mIoU | 91.33 |
-| Cell IoU | 88.13 |
-| Background IoU | 94.54 |
-| Dice | 0.9219 |
-| Pixel Accuracy | 96.11 |
+|  mIoU: | 91.33% | 
+|  Dice: | 92.19% |
+
+
 
 ### Instance Segmentation (Validation Set)
 

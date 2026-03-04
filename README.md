@@ -218,7 +218,17 @@ In addition to the periodic evaluation every 50 iterations, I implemented a cust
 
 ### Visualization 1: Semantic Segmentation — Prediction vs Ground Truth
 
+#### Example 1
+
 ![Semantic GT vs Prediction](semantic_gt_vs_pred_example1.png)
+
+#### Example 2
+
+![Semantic GT vs Prediction](semantic_gt_vs_pred_example2.png)
+
+#### Example 3
+
+![Semantic GT vs Prediction](semantic_gt_vs_pred_example3.png)
 
 *(Insert figure: original image, GT mask, predicted mask side by side), code can be refer to jupyter notebook*
 

@@ -174,7 +174,7 @@ In addition to the periodic evaluation every 50 iterations, I implemented a cust
 
 ## 3. Quantitative Results
 
-### Semantic Segmentation (Test Set), 5000 iteration
+### Semantic Segmentation (Test Set,159), 5000 iteration
 
 #### With train dataset (1052) to train model
 
@@ -193,7 +193,7 @@ In addition to the periodic evaluation every 50 iterations, I implemented a cust
 
 
 
-### Instance Segmentation (Validation Set), 5000 iteration
+### Instance Segmentation (Test Set,159), 5000 iteration
 
 #### With train dataset (1052) to train model
 
